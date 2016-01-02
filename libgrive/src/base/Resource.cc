@@ -463,7 +463,7 @@ void Resource::SyncSelf( Syncer* syncer, ResourceTree *res_tree, const Val& opti
 				if ( syncer )
 				{
 					if ( is_local )
-						syncer->Move( from, to->Parent(), to->Name() );
+						syncer->Move( from, to );
 					else
 					{
 						fs::rename( from->Path(), to->Path() );

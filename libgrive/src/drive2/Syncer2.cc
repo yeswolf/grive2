@@ -89,7 +89,7 @@ bool Syncer2::Create( Resource *res )
 	return Upload( res );
 }
 
-bool Syncer2::Move( Resource* res, Resource* newParentRes, std::string newFilename )
+bool Syncer2::Move( Resource* res, Resource* newRes )
 {
 	if ( res->ResourceID().empty() )
 	{
@@ -98,7 +98,7 @@ bool Syncer2::Move( Resource* res, Resource* newParentRes, std::string newFilena
 	}
 
 	Val meta;
-	meta.Add( "title", Val(newFilename) );
+	meta.Add( "title", Val( newRes->Name() ) );
 	if ( res->IsFolder() )
 	{
 		meta.Add( "mimeType", Val( mime_types::folder ) );
@@ -110,14 +110,14 @@ bool Syncer2::Move( Resource* res, Resource* newParentRes, std::string newFilena
 	// Issue metadata update request
 	{
 		std::string addRemoveParents("");
-		if (res->Parent()->IsRoot() )
+		if ( res->Parent()->IsRoot() )
 			addRemoveParents += "&removeParents=root";
 		else
 			addRemoveParents += "&removeParents=" + res->Parent()->ResourceID();
-		if ( newParentRes->IsRoot() )
+		if ( newRes->Parent()->IsRoot() )
 			addRemoveParents += "&addParents=root";
 		else
-			addRemoveParents += "&addParents=" + newParentRes->ResourceID();
+			addRemoveParents += "&addParents=" + newRes->Parent()->ResourceID();
 		http::Header hdr2 ;
 		hdr2.Add( "Content-Type: application/json" );
 		http::ValResponse vrsp ;
@@ -128,6 +128,9 @@ bool Syncer2::Move( Resource* res, Resource* newParentRes, std::string newFilena
 		) ;
 		valr = vrsp.Response();
 		assert( http_code == 200 && !( valr["id"].Str().empty() ) );
+		Entry2 responseEntry = Entry2( valr ) ;
+		AssignIDs( newRes, responseEntry ) ;
+		newRes->SetServerTime( responseEntry.MTime() );
 	}
 
 	return true;
