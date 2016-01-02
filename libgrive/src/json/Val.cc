@@ -24,6 +24,7 @@
 #include "util/StdStream.hh"
 
 #include <iostream>
+#include <cstdio>
 
 namespace gr {
 
@@ -116,6 +117,12 @@ const Val& Val::operator[]( std::size_t index ) const
 
 std::string Val::Str() const
 {
+	if ( Type() == int_type )
+	{
+		char buf[40];
+		sprintf( buf, "%lld", As<long long>() );
+		return std::string( buf );
+	}
 	return As<std::string>() ;
 }
 

@@ -98,7 +98,7 @@ void Resource::FromRemoteFolder( const Entry& remote )
 		Log( "%1% changed from folder to file", path, log::verbose ) ;
 		m_state = sync ;
 	}
-	else if ( remote.MTime().Sec() > m_mtime.Sec() ) // FIXME only seconds are stored in local index
+	else if ( remote.MTime() > m_mtime )
 	{
 		// remote folder created after last sync, so remote is newer
 		Log( "folder %1% is created in remote", path, log::verbose ) ;
@@ -168,7 +168,7 @@ void Resource::FromRemoteFile( const Entry& remote )
 	{
 		Trace( "file %1% change stamp = %2%", Path(), remote.ChangeStamp() ) ;
 		
-		if ( remote.MTime().Sec() > m_mtime.Sec() || remote.MD5() != m_md5 || remote.ChangeStamp() > 0 )
+		if ( remote.MTime() > m_mtime || remote.MD5() != m_md5 || remote.ChangeStamp() > 0 )
 		{
 			Log( "file %1% is created in remote (change %2%)", path,
 				remote.ChangeStamp(), log::verbose ) ;
@@ -203,7 +203,7 @@ void Resource::FromRemoteFile( const Entry& remote )
 		assert( m_state != unknown ) ;
 
 		// if remote is modified
-		if ( remote.MTime().Sec() > m_mtime.Sec() )
+		if ( remote.MTime() > m_mtime )
 		{
 			Log( "file %1% is changed in remote", path, log::verbose ) ;
 			m_state = remote_changed ;
@@ -225,11 +225,11 @@ void Resource::FromDeleted( Val& state )
 	assert( !m_json );
 	m_json = &state;
 	if ( state.Has( "ctime" ) )
-		m_ctime.Assign( state["ctime"].U64(), 0 );
+		m_ctime = DateTime::Unserialize( state["ctime"].Str() );
 	if ( state.Has( "md5" ) )
 		m_md5 = state["md5"];
 	if ( state.Has( "srv_time" ) )
-		m_mtime.Assign( state[ "srv_time" ].U64(), 0 ) ;
+		m_mtime = DateTime::Unserialize( state["srv_time"].Str() ) ;
 	m_state = both_deleted;
 }
 
@@ -251,7 +251,8 @@ void Resource::FromLocal( Val& state )
 		m_kind = is_dir ? "folder" : "file";
 
 		bool is_changed;
-		if ( state.Has( "ctime" ) && (u64_t) m_ctime.Sec() <= state["ctime"].U64() &&
+		DateTime c;
+		if ( state.Has( "ctime" ) && m_ctime <= ( c = DateTime::Unserialize( state["ctime"].Str() ) ) &&
 			( is_dir || state.Has( "md5" ) ) )
 		{
 			if ( !is_dir )
@@ -270,7 +271,7 @@ void Resource::FromLocal( Val& state )
 				is_changed = true;
 		}
 		if ( state.Has( "srv_time" ) )
-			m_mtime.Assign( state[ "srv_time" ].U64(), 0 ) ;
+			m_mtime = DateTime::Unserialize( state[ "srv_time" ].Str() ) ;
 
 		// follow parent recursively
 		if ( m_parent->m_state == local_new || m_parent->m_state == remote_deleted )
@@ -494,7 +495,7 @@ void Resource::SyncSelf( Syncer* syncer, ResourceTree *res_tree, const Val& opti
 						to->SetIndex( true );
 					}
 					to->m_mtime = from->m_mtime;
-					to->m_json->Set( "srv_time", Val( from->m_mtime.Sec() ) );
+					to->m_json->Set( "srv_time", Val( from->m_mtime.Serialize() ) );
 					from->DeleteIndex();
 				}
 				from->m_state = both_deleted;
@@ -588,7 +589,7 @@ void Resource::SyncSelf( Syncer* syncer, ResourceTree *res_tree, const Val& opti
 	if ( syncer && m_json )
 	{
 		// Update server time of this file
-		m_json->Set( "srv_time", Val( m_mtime.Sec() ) );
+		m_json->Set( "srv_time", Val( m_mtime.Serialize() ) );
 	}
 }
 
@@ -643,7 +644,7 @@ void Resource::SetIndex( bool re_stat )
 		os::Stat( Path(), &m_ctime, NULL, &is_dir );
 	if ( !is_dir )
 	{
-		m_json->Set( "ctime", Val( m_ctime.Sec() ) );
+		m_json->Set( "ctime", Val( m_ctime.Serialize() ) );
 		m_json->Set( "md5", Val( m_md5 ) );
 		m_json->Del( "tree" );
 	}

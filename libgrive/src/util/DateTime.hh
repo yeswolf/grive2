@@ -54,6 +54,8 @@ public :
 	
 	void Swap( DateTime& dt ) ;
 	std::string ToString() const ;
+	std::string Serialize() const ;
+	static DateTime Unserialize( const std::string & ) ;
 	
 private :
 	std::time_t		m_sec ;

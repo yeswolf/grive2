@@ -30,6 +30,7 @@
 
 #include <sstream>
 
+#include <cstdio>
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
@@ -179,6 +180,33 @@ std::string DateTime::ToString() const
 	std::ostringstream ss ;
 	ss << *this ;
 	return ss.str() ;
+}
+
+std::string DateTime::Serialize() const
+{
+	char buf[40] ;
+	unsigned nsec = 1000000000+m_nsec;
+	while ( !(nsec%10) )
+		nsec /= 10;
+	sprintf( buf, "%lld", (unsigned long long)m_sec );
+	int l = strlen( buf );
+	sprintf( buf+l, "%u", nsec );
+	buf[l] = '.';
+	return std::string( buf );
+}
+
+DateTime DateTime::Unserialize( const std::string &str )
+{
+	unsigned long long sec = 0 ;
+	unsigned nsec = 0 ;
+	int r = sscanf( str.c_str(), "%lld.%u", &sec, &nsec );
+	if ( r > 1 )
+	{
+		int l = 9 - (str.length() - str.find('.'));
+		for (int i = 0; i < l; i++)
+			nsec *= 10;
+	}
+	return DateTime( sec, nsec );
 }
 
 } // end of namespace
