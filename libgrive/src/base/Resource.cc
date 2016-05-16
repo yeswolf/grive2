@@ -169,7 +169,9 @@ void Resource::FromRemoteFile( const Entry& remote )
 	{
 		Trace( "file %1% change stamp = %2%", Path(), remote.ChangeStamp() ) ;
 		
-		if ( remote.MTime().Sec() > m_mtime.Sec() || remote.MD5() != m_md5 || remote.ChangeStamp() > 0 )
+		if ( remote.MTime().Sec() > m_mtime.Sec() ||
+			( !remote.MD5().empty() && remote.MD5() != m_md5 ) ||
+			remote.ChangeStamp() > 0 )
 		{
 			Log( "file %1% is created in remote (change %2%)", path,
 				remote.ChangeStamp(), log::verbose ) ;
@@ -182,17 +184,17 @@ void Resource::FromRemoteFile( const Entry& remote )
 			m_state = local_deleted ;
 		}
 	}
-	
-	// remote checksum unknown, assume the file is not changed in remote
-	else if ( remote.MD5().empty() )
+
+	// remote download URL unknown, skip file
+	else if ( remote.ContentSrc().empty() )
 	{
-		Log( "file %1% has unknown checksum in remote. assumed in sync",
+		Log( "file %1% has unknown download URL. assumed in sync",
 			Path(), log::verbose ) ;
 		m_state = sync ;
 	}
-	
+
 	// if checksum is equal, no need to compare the mtime
-	else if ( remote.MD5() == m_md5 )
+	else if ( !remote.MD5().empty() && remote.MD5() == m_md5 )
 	{
 		Log( "file %1% is already in sync", Path(), log::verbose ) ;
 		m_state = sync ;
@@ -209,13 +211,21 @@ void Resource::FromRemoteFile( const Entry& remote )
 			Log( "file %1% is changed in remote", path, log::verbose ) ;
 			m_state = remote_changed ;
 		}
-		
+
+		// google document
+		else if ( remote.MD5().empty() && m_state == remote_deleted )
+		{
+			Log( "file %1% has no MD5 and is in sync", path, log::verbose ) ;
+			m_state = sync ;
+		}
+
 		// remote also has the file, so it's not new in local
 		else if ( m_state == local_new || m_state == remote_deleted )
 		{
 			Log( "file %1% is changed in local", path, log::verbose ) ;
 			m_state = local_changed ;
 		}
+
 		else
 			Trace( "file %1% state is %2%", m_name, m_state ) ;
 	}

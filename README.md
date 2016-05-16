@@ -76,6 +76,7 @@ Enjoy!
 - ignore regexp does not persist anymore (note that Grive will still track it to not
   accidentally delete remote files when changing ignore regexp)
 - added options to limit upload and download speed
+- added ability to sync google documents
 
 ### Grive2 v0.5
 

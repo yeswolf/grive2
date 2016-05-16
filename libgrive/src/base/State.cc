@@ -151,7 +151,7 @@ void State::FromRemote( const Entry& e )
 
 	// common checkings
 	if ( !e.IsDir() && ( fn.empty() || e.ContentSrc().empty() ) )
-		Log( "%1% \"%2%\" is a google document, ignored", k, e.Name(), log::verbose ) ;
+		Log( "%1% \"%2%\" has no download link or filename, ignored", k, e.Name(), log::verbose ) ;
 	
 	else if ( fn.find('/') != fn.npos )
 		Log( "%1% \"%2%\" contains a slash in its name, ignored", k, e.Name(), log::verbose ) ;

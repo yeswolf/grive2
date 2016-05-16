@@ -66,10 +66,33 @@ void Entry2::Update( const Val& item )
 		m_is_removed	= file["labels"]["trashed"].Bool() ;
 		if ( !m_is_dir )
 		{
-			if ( !file.Has( "md5Checksum" ) || !file.Has("downloadUrl") )
+			if ( !file.Has( "md5Checksum" ) && file.Has( "exportLinks" ) )
 			{
-				// This is either a google docs document or a not-yet-uploaded file. Ignore it.
-				// FIXME: We'll need to compare timestamps to support google docs.
+				// This is a google docs document.
+				const Val::Object& obj = file["exportLinks"].AsObject() ;
+				const char ooxml[] = "application/vnd.openxmlformats-officedocument";
+				for ( Val::Object::const_iterator i = obj.begin() ; i != obj.end() ; ++i )
+					if ( i->first.substr( 0, sizeof( ooxml ) - 1 ) == ooxml )
+						m_content_src = i->second.Str();
+				if ( m_content_src.empty() )
+					m_content_src = obj.begin()->second.Str();
+				if ( !m_content_src.empty() )
+				{
+					size_t pos = m_content_src.find( "exportFormat=" );
+					if ( pos != std::string::npos )
+					{
+						size_t end = m_content_src.find( '&', pos+13 );
+						if ( end == std::string::npos )
+							end = m_content_src.length();
+						std::string fmt = m_content_src.substr( pos+13, end-pos-13 );
+						if ( m_filename.substr( m_filename.length() - fmt.length() - 1 ) != "."+fmt )
+							m_filename += "."+fmt;
+					}
+				}
+			}
+			else if ( !file.Has( "md5Checksum" ) || !file.Has("downloadUrl") )
+			{
+				// This is a not-yet-uploaded file. Ignore it.
 				m_is_removed = true;
 			}
 			else
