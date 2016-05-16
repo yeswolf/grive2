@@ -206,7 +206,8 @@ void Resource::FromRemoteFile( const Entry& remote )
 		// if remote is modified
 		if ( remote.MTime().Sec() > m_mtime.Sec() )
 		{
-			Log( "file %1% is changed in remote", path, log::verbose ) ;
+			Log( "file %1% is changed in remote (md5: local %2%, remote %3%; mtime: local %4%, remote %5%)",
+				path, m_md5, remote.MD5(), m_mtime.Sec(), remote.MTime().Sec(), log::info ) ;
 			m_state = remote_changed ;
 		}
 		
