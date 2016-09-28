@@ -77,7 +77,7 @@ long AuthAgent::Request(
 	SeekStream			*in,
 	DataStream			*dest,
 	const http::Header&	hdr,
-	const long			downloadFileBytes)
+	const long			downloadFileBytes )
 {
 	long response;
 	Header auth;

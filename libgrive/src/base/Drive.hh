@@ -44,7 +44,6 @@ public :
 	void Update() ;
 	void DryRun() ;
 	void SaveState() ;
-	void UpdateChangeStamp() ;
 	
 	struct Error : virtual Exception {} ;
 	
@@ -54,7 +53,8 @@ private :
 	void ReadChanges() ;
 	void FromRemote( const Entry& entry ) ;
 	void FromChange( const Entry& entry ) ;
-
+	void UpdateChangeStamp( ) ;
+	
 private :
 	Syncer			*m_syncer ;
 	fs::path		m_root ;

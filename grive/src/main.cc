@@ -45,7 +45,6 @@
 #include <iostream>
 #include <unistd.h>
 
-
 const std::string client_id		= "22314510474.apps.googleusercontent.com" ;
 const std::string client_secret	= "bl4ufi89h-9MkFlypcI7R785" ;
 
@@ -151,7 +150,7 @@ int Main( int argc, char **argv )
 	InitLog(vm) ;
 	
 	Config config(vm) ;
-
+	
 	Log( "config file name %1%", config.Filename(), log::verbose );
 
 	std::unique_ptr<http::Agent> http( new http::CurlAgent );
@@ -183,7 +182,6 @@ int Main( int argc, char **argv )
 		config.Set( "refresh_token", Val( token.RefreshToken() ) ) ;
 		config.Save() ;
 	}
-
 	
 	std::string refresh_token ;
 	try
@@ -216,17 +214,16 @@ int Main( int argc, char **argv )
 
 	if ( vm.count( "dry-run" ) == 0 )
 	{
-		//The progress bar should just be enabled when actual file transfers take place
-		pb->SetShowProgressBar(true);
+		// The progress bar should just be enabled when actual file transfers take place
+		pb->SetShowProgressBar( true ) ;
 		drive.Update() ;
-		pb->SetShowProgressBar(false);
+		pb->SetShowProgressBar( false ) ;
 
-		drive.UpdateChangeStamp();
 		drive.SaveState() ;
 	}
 	else
 		drive.DryRun() ;
-
+		
 	config.Save() ;
 	Log( "Finished!", log::info ) ;
 	return 0 ;

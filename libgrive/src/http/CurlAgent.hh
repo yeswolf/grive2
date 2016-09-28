@@ -46,7 +46,7 @@ public :
 
 	ResponseLog* GetLog() const ;
 	void SetLog( ResponseLog *log ) ;
-	void SetProgressBar( ProgressBar *progressbar) ;
+	void SetProgressBar( ProgressBar *progressbar ) ;
 
 	long Request(
 		const std::string&	method,
@@ -54,7 +54,7 @@ public :
 		SeekStream			*in,
 		DataStream			*dest,
 		const Header&		hdr,
-		const long			downloadFileBytes = 0) ;
+		const long			downloadFileBytes = 0 ) ;
 
 	std::string LastError() const ;
 	std::string LastErrorHeaders() const ;
@@ -64,7 +64,7 @@ public :
 	std::string Escape( const std::string& str ) ;
 	std::string Unescape( const std::string& str ) ;
 
-	static int progress_callback(void *ptr,   curl_off_t TotalDownloadSize,   curl_off_t finishedDownloadSize,   curl_off_t TotalToUpload,   curl_off_t NowUploaded);
+	static int progress_callback( void *ptr, curl_off_t TotalDownloadSize, curl_off_t finishedDownloadSize, curl_off_t TotalToUpload, curl_off_t NowUploaded );
 
 private :
 	static std::size_t HeaderCallback( void *ptr, size_t size, size_t nmemb, CurlAgent *pthis ) ;

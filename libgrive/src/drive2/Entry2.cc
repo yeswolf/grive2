@@ -65,13 +65,10 @@ void Entry2::Update( const Val& item )
 		m_is_editable	= file["editable"].Bool() ;
 		m_is_removed	= file["labels"]["trashed"].Bool() ;
 
-		if (file.Has("fileSize"))
-		{
-			m_size	= file["fileSize"].U64() ;
-		} else
-		{
-			m_size 	= 0;
-		}
+		if ( file.Has( "fileSize" ) )
+			m_size = file["fileSize"].U64() ;
+		else
+			m_size = 0;
 
 		if ( !m_is_dir )
 		{

@@ -92,8 +92,8 @@ void Drive::DetectChanges()
 	m_state.ResolveEntry() ;
 }
 
-
-size_t Drive::getTotalChanges() {
+size_t Drive::getTotalChanges()
+{
 	return m_state.getTotalChanges();
 }
 
@@ -120,6 +120,8 @@ void Drive::Update()
 {
 	Log( "Synchronizing files", log::info ) ;
 	m_state.Sync( m_syncer, m_options ) ;
+	
+	UpdateChangeStamp( ) ;
 }
 
 void Drive::DryRun()

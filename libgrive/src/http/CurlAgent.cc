@@ -27,8 +27,6 @@
 #include "util/File.hh"
 
 #include <boost/throw_exception.hpp>
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/lexical_cast.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -119,7 +117,7 @@ std::size_t CurlAgent::HeaderCallback( void *ptr, size_t size, size_t nmemb, Cur
 {
 	char *str = static_cast<char*>(ptr) ;
 	std::string line( str, str + size*nmemb ) ;
-
+	
 	// Check for error (HTTP 400 and above)
 	if ( line.substr( 0, 5 ) == "HTTP/" && line[9] >= '4' )
 		pthis->m_pimpl->error = true;
@@ -129,7 +127,7 @@ std::size_t CurlAgent::HeaderCallback( void *ptr, size_t size, size_t nmemb, Cur
 	
 	if ( pthis->m_log.get() )
 		pthis->m_log->Write( str, size*nmemb );
-
+	
 	static const std::string loc = "Location: " ;
 	std::size_t pos = line.find( loc ) ;
 	if ( pos != line.npos )
@@ -137,21 +135,20 @@ std::size_t CurlAgent::HeaderCallback( void *ptr, size_t size, size_t nmemb, Cur
 		std::size_t end_pos = line.find( "\r\n", pos ) ;
 		pthis->m_pimpl->location = line.substr( loc.size(), end_pos - loc.size() ) ;
 	}
-
+	
 	return size*nmemb ;
 }
 
 std::size_t CurlAgent::Receive( void* ptr, size_t size, size_t nmemb, CurlAgent *pthis )
 {
 	assert( pthis != 0 ) ;
-
 	if ( pthis->m_log.get() )
 		pthis->m_log->Write( (const char*)ptr, size*nmemb );
 
 	if ( pthis->totalDownloadSize > 0 )
 	{
 		pthis->downloadedBytes += (curl_off_t)size*nmemb;
-		CurlAgent::progress_callback(pthis, pthis->totalDownloadSize, pthis->downloadedBytes, 0L, 0L);
+		CurlAgent::progress_callback( pthis, pthis->totalDownloadSize, pthis->downloadedBytes, 0L, 0L );
 	}
 
 	if ( pthis->m_pimpl->error && pthis->m_pimpl->error_data.size() < 65536 )
@@ -163,13 +160,11 @@ std::size_t CurlAgent::Receive( void* ptr, size_t size, size_t nmemb, CurlAgent 
 	return pthis->m_pimpl->dest->Write( static_cast<char*>(ptr), size * nmemb ) ;
 }
 
-
-int CurlAgent::progress_callback(void *ptr, curl_off_t totalDownloadSize, curl_off_t finishedDownloadSize, curl_off_t totalToUpload, curl_off_t finishedUploaded)
+int CurlAgent::progress_callback( void *ptr, curl_off_t totalDownloadSize, curl_off_t finishedDownloadSize, curl_off_t totalToUpload, curl_off_t finishedUploaded )
 {
 	((CurlAgent*)ptr)->m_pb->PrintProgressBar(totalDownloadSize, finishedDownloadSize, totalToUpload, finishedUploaded);
 	return 0;
 }
-
 
 long CurlAgent::ExecCurl(
 	const std::string&	url,
@@ -227,9 +222,8 @@ long CurlAgent::Request(
 	SeekStream			*in,
 	DataStream			*dest,
 	const Header&		hdr,
-	const long			downloadFileBytes)
+	const long			downloadFileBytes )
 {
-
 	Trace("HTTP %1% \"%2%\"", method, url ) ;
 
 	Init() ;
