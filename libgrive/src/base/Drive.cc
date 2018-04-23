@@ -84,7 +84,10 @@ void Drive::DetectChanges()
 			feed->begin(), feed->end(),
 			boost::bind( &Drive::FromRemote, this, _1 ) ) ;
 	}
+
 	m_state.ResolveEntry() ;
+	Feed* ptr = feed.release();
+//	feed.get_deleter()(ptr);
 }
 
 // pull the changes feed

@@ -5,14 +5,13 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 find_package(LibGcrypt REQUIRED)
 find_package(CURL REQUIRED)
 find_package(EXPAT REQUIRED)
-find_package(Boost 1.40.0 COMPONENTS program_options filesystem unit_test_framework regex system REQUIRED)
+find_package(Boost 1.67.0 COMPONENTS program_options filesystem unit_test_framework regex system REQUIRED)
 find_package(BFD)
 find_package(CppUnit)
 find_package(Iberty)
 find_package(ZLIB)
-
+find_package(YAJL REQUIRED)
 find_package(PkgConfig)
-pkg_check_modules(YAJL REQUIRED yajl)
 
 add_definitions(-Wall)
 
@@ -36,6 +35,12 @@ if ( IBERTY_FOUND )
 else ( IBERTY_FOUND )
   set( IBERTY_LIBRARY "" )
 endif ( IBERTY_FOUND )
+
+if ( YAJL_FOUND )
+	set( OPT_LIBS	${OPT_LIBS}	${YAJL_LIBRARY} )
+else ( YAJL_FOUND )
+	set( YAJL_LIBRARY "" )
+endif ( YAJL_FOUND )
 
 if ( ZLIB_FOUND )
 	set( OPT_LIBS	${OPT_LIBS}	${ZLIB_LIBRARIES} )
@@ -80,7 +85,7 @@ add_definitions(
 add_library( grive STATIC ${LIBGRIVE_SRC} ${OPT_SRC} )
 
 target_link_libraries( grive
-	${YAJL_LIBRARIES}
+	${YAJL_LIBRARY}
 	${CURL_LIBRARIES}
 	${LIBGCRYPT_LIBRARIES}
 	${Boost_LIBRARIES}

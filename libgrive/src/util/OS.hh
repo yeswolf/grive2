@@ -23,6 +23,7 @@
 #include "FileSystem.hh"
 
 #include <string>
+#include <sys/dtrace.h>
 
 namespace gr {
 
