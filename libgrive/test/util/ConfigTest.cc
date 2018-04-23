@@ -44,7 +44,24 @@ void ConfigTest::TestInitialiseWithNoPath( )
 	Config config(vm);
 	GRUT_ASSERT_EQUAL( "./.grive", config.Filename().string()) ;
 }
+void ConfigTest::TestInitialiseWithDownloadOnly( )
+{
+	char const *argv[] = { "Program", "-D"};
+	int argc = 3;
 
+	po::options_description desc( "Grive options" );
+	desc.add_options()
+			( "download-only,d", "Do not upload anything to Google Drive, only download files")
+			;
+
+	po::variables_map vm;
+	po::store(po::parse_command_line( argc, argv, desc), vm );
+	po::notify(vm);
+
+	Config config(vm);
+	GRUT_ASSERT_EQUAL( "/home/grive/.grive", config.Get("download-only")) ;
+
+}
 void ConfigTest::TestInitialiseWithPath( )
 {
 	char const *argv[] = { "Program", "-p", "/home/grive" };
