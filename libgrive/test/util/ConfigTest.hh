@@ -37,6 +37,7 @@ public :
 
 private :
 	void TestInitialiseWithPath( );
+	void TestInitialiseWithDownloadOnly( );
 	void TestInitialiseWithNoPath( );
 } ;
 
