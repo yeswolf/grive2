@@ -13,4 +13,3 @@ Makefile
 bgrive/bgrive
 grive/grive
 libgrive/btest
-*.cmake
