@@ -77,7 +77,7 @@ void Resource::SetState( State new_state )
 		new_state == remote_new || new_state == remote_deleted ||
 		new_state == local_new  || new_state == local_deleted
 	) ;
-	
+
 	m_state = new_state ;
 	std::for_each( m_child.begin(), m_child.end(),
 		boost::bind( &Resource::SetState, _1, new_state ) ) ;
@@ -86,10 +86,10 @@ void Resource::SetState( State new_state )
 void Resource::FromRemoteFolder( const Entry& remote )
 {
 	fs::path path = Path() ;
-	
+
 	if ( !remote.IsEditable() )
 		Log( "folder %1% is read-only", path, log::verbose ) ;
-	
+
 	// already sync
 	if ( m_local_exists && m_kind == "folder" )
 	{
@@ -130,14 +130,14 @@ void Resource::FromRemote( const Entry& remote )
 		FromRemoteFolder( remote ) ;
 	else
 		FromRemoteFile( remote ) ;
-	
+
 	AssignIDs( remote ) ;
-	
+
 	assert( m_state != unknown ) ;
-	
+
 	if ( m_state == remote_new || m_state == remote_changed )
 		m_md5 = remote.MD5() ;
-	
+
 	m_mtime = remote.MTime() ;
 }
 
@@ -158,7 +158,7 @@ void Resource::AssignIDs( const Entry& remote )
 void Resource::FromRemoteFile( const Entry& remote )
 {
 	assert( m_parent != 0 ) ;
-	
+
 	fs::path path = Path() ;
 
 	// recursively create/delete folder
@@ -169,7 +169,7 @@ void Resource::FromRemoteFile( const Entry& remote )
 			( m_parent->m_state == remote_new || m_parent->m_state == local_new )      ? "created" : "deleted",
 			( m_parent->m_state == remote_new || m_parent->m_state == remote_deleted ) ? "remote"  : "local",
 			m_parent->m_state, log::verbose ) ;
-		
+
 		m_state = m_parent->m_state ;
 	}
 
@@ -182,7 +182,7 @@ void Resource::FromRemoteFile( const Entry& remote )
 	else if ( !m_local_exists )
 	{
 		Trace( "file %1% change stamp = %2%", Path(), remote.ChangeStamp() ) ;
-		
+
 		if ( remote.MTime().Sec() > m_mtime.Sec() || remote.MD5() != m_md5 || remote.ChangeStamp() > 0 )
 		{
 			Log( "file %1% is created in remote (change %2%)", path,
@@ -217,7 +217,7 @@ void Resource::FromRemoteFile( const Entry& remote )
 			m_size = remote.Size();
 			m_state = remote_changed ;
 		}
-		
+
 		// remote also has the file, so it's not new in local
 		else if ( m_state == local_new || m_state == remote_deleted )
 		{
@@ -327,7 +327,7 @@ void Resource::FromLocal( Val& state )
 			}
 		}
 	}
-	
+
 	assert( m_state != unknown ) ;
 }
 
@@ -442,7 +442,7 @@ void Resource::Sync( Syncer *syncer, ResourceTree *res_tree, const Val& options 
 {
 	assert( m_state != unknown ) ;
 	assert( !IsRoot() || m_state == sync ) ;	// root folder is already synced
-	
+
 	try
 	{
 		SyncSelf( syncer, res_tree, options ) ;
@@ -484,7 +484,7 @@ void Resource::Sync( Syncer *syncer, ResourceTree *res_tree, const Val& options 
 			Log( "Response text: %1%", *resp_txt, log::verbose );
 		return;
 	}
-	
+
 	// if myself is deleted, no need to do the childrens
 	if ( m_state != local_deleted && m_state != remote_deleted )
 	{
@@ -570,33 +570,44 @@ void Resource::SyncSelf( Syncer* syncer, ResourceTree *res_tree, const Val& opti
 	switch ( m_state )
 	{
 	case local_new :
-		Log( "sync %1% doesn't exist in server, uploading", path, log::info ) ;
-		
-		if ( syncer && syncer->Create( this ) )
+        if ( options["download-only"].Bool() )
+            Log( "sync %1% doesn't exist in server, skipping", path, log::info ) ;
+		else
 		{
-			m_state = sync ;
-			SetIndex( false );
+		    if( syncer && syncer->Create( this ) ){
+                Log( "sync %1% doesn't exist in server, uploading", path, log::info ) ;
+                m_state = sync ;
+                SetIndex( false );
+		    }
 		}
 		break ;
-	
+
 	case local_deleted :
-		Log( "sync %1% deleted in local. deleting remote", path, log::info ) ;
-		if ( syncer && !options["no-delete-remote"].Bool() )
-		{
-			syncer->DeleteRemote( this ) ;
-			DeleteIndex() ;
-		}
+        if ( options["download-only"].Bool() )
+            Log( "sync %1% deleted in local. skipping", path, log::info ) ;
+        else {
+            Log( "sync %1% deleted in local. deleting remote", path, log::info ) ;
+            if ( syncer && !options["no-delete-remote"].Bool() )
+            {
+                syncer->DeleteRemote( this ) ;
+                DeleteIndex() ;
+            }
+        }
 		break ;
-	
+
 	case local_changed :
-		Log( "sync %1% changed in local. uploading", path, log::info ) ;
-		if ( syncer && syncer->EditContent( this, options["new-rev"].Bool() ) )
-		{
-			m_state = sync ;
-			SetIndex( false );
-		}
+        if ( options["download-only"].Bool() )
+            Log( "sync %1% changed in local. skipping", path, log::info ) ;
+        else {
+            Log( "sync %1% changed in local. uploading", path, log::info ) ;
+            if ( syncer && syncer->EditContent( this, options["new-rev"].Bool() ) )
+            {
+                m_state = sync ;
+                SetIndex( false );
+            }
+        }
 		break ;
-	
+
 	case remote_new :
 		if ( options["no-remote-new"].Bool() )
 			Log( "sync %1% created in remote. skipping", path, log::info ) ;
@@ -614,7 +625,7 @@ void Resource::SyncSelf( Syncer* syncer, ResourceTree *res_tree, const Val& opti
 			}
 		}
 		break ;
-	
+
 	case remote_changed :
 		assert( !IsFolder() ) ;
 		if ( options["upload-only"].Bool() )
@@ -630,7 +641,7 @@ void Resource::SyncSelf( Syncer* syncer, ResourceTree *res_tree, const Val& opti
 			}
 		}
 		break ;
-	
+
 	case remote_deleted :
 		Log( "sync %1% deleted in remote. deleting local", path, log::info ) ;
 		if ( syncer )
@@ -639,25 +650,25 @@ void Resource::SyncSelf( Syncer* syncer, ResourceTree *res_tree, const Val& opti
 			DeleteIndex() ;
 		}
 		break ;
-	
+
 	case both_deleted :
 		if ( syncer )
 			DeleteIndex() ;
 		break ;
-	
+
 	case sync :
 		Log( "sync %1% already in sync", path, log::verbose ) ;
 		if ( !IsRoot() )
 			SetIndex( false ) ;
 		break ;
-	
+
 	// shouldn't go here
 	case unknown :
 	default :
 		assert( false ) ;
 		break ;
 	}
-	
+
 	if ( syncer && m_json )
 	{
 		// Update server time of this file

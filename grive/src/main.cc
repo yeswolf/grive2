@@ -121,6 +121,7 @@ int Main( int argc, char **argv )
 		( "force,f",	"Force grive to always download a file from Google Drive "
 						"instead of uploading it." )
 		( "upload-only,u", "Do not download anything from Google Drive, only upload local changes" )
+		( "download-only,do", "Do not upload anything to Google Drive, only download files" )
 		( "no-remote-new,n", "Download only files that are changed in Google Drive and already exist locally" )
 		( "dry-run",	"Only detect which files need to be uploaded/downloaded, "
 						"without actually performing them." )
